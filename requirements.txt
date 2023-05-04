@@ -10,3 +10,4 @@ torch
 torch-geometric
 torch-geometric-temporal
 tslearn
+tqdm
