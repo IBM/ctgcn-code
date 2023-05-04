@@ -132,3 +132,4 @@ dmypy.json
 logs
 .DS_Store
 __pycache__
+.idea
