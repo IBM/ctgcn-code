@@ -1,6 +1,21 @@
 # Causal Temporal Graph Convolutional Neural Networks (CTGCN)
 
-Code provided to accompany the paper of the same name submitted to ICML 2023. CTGCN is a tool for conducting decomposed causal inference to learn the underlying relationships in a real-world system, which can then be used as the graph in a graph convolution layer to improve performance on some downstream forecasting task.
+Code provided to accompany the paper of the same name presented at FunCausal 2023. CTGCN is a tool for conducting decomposed causal inference to learn the underlying relationships in a large timeseries datasets of real-world system, which can then be used as the graph in a graph convolution neural network to improve performance on downstream forecasting task that represent the underlying causality and not just correlation.
+
+The code was developed and tested on various datasets
+
+For details of the code please refer to the paper https://arxiv.org/abs/2303.09634:
+
+```
+@misc{langbridge2023causal,
+      title={Causal Temporal Graph Convolutional Neural Networks (CTGCN)}, 
+      author={Abigail Langbridge and Fearghal O'Donncha and Amadou Ba and Fabio Lorenzi and Christopher Lohse and Joern Ploennigs},
+      year={2023},
+      eprint={2303.09634},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+```
 
 ### Installation Guide
 
