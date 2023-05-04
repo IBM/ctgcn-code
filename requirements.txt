@@ -1,0 +1,12 @@
+pandas
+pymongo
+dcor
+numba==0.55.1
+gpytorch
+torch==1.12.1
+numpy==1.21.5
+tigramite
+torch
+torch-geometric
+torch-geometric-temporal
+tslearn
