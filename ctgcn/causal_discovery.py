@@ -14,10 +14,8 @@ import os
 import json
 from tqdm import tqdm
 
-from datetime import timedelta, datetime
+from datetime import datetime
 
-
-#  arg ideas: data_path (location of data, Data/), verbose=1 (ie printing times), decomposition (time, space, both), params (tau_max/pc_alpha)
 class CausalDiscovery:
     def __init__(self, data_path: str, tau_max: float, var_names: Optional[List[str]] = None, pc_alpha: Optional[float] = 0.01,
                  ci_test: Optional[Literal["GPDC", "GPDCTorch", "ParCorr"]] = 'GPDCTorch', verbose: Optional[int] = 1, result_path: Optional[str] = None):
