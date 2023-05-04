@@ -1,9 +1,10 @@
+from typing import List,Enum,Optional,Literal
 import numpy as np
 import matplotlib.pyplot as plt
 
 from tigramite import data_processing as pp
 from tigramite.pcmci import PCMCI
-from tigramite.independence_tests import GPDC, ParCorr
+from tigramite.independence_tests import GPDC, ParCorr, GPDCtorch
 
 from tslearn.clustering import TimeSeriesKMeans
 import warnings
@@ -18,7 +19,7 @@ from datetime import timedelta, datetime
 
 # arg ideas: data_path (location of data, Data/), verbose=1 (ie printing times), decomposition (time, space, both), params (tau_max/pc_alpha)
 class CausalDiscovery:
-    def __init__(self, data_path, tau_max, var_names=None, pc_alpha=0.01, ci_test='gpdc', verbose=1, result_path=None):
+    def __init__(self, data_path:str, tau_max:float, var_names:Optional[List[str]]=None, pc_alpha:Optional[float]=0.01, ci_test:Optional[Literal["GPDC","GPDCTorch","ParCorr"]]='GPDCTorch', verbose:Optional[int]=1, result_path:Optional[str]=None):
         self.data_path = data_path
         self.tau_max = tau_max
         self.var_names = var_names
@@ -26,10 +27,12 @@ class CausalDiscovery:
         self.result_path = result_path
         if ci_test.lower() == 'gpdc':
             self.ci_test = GPDC(significance='analytic')
+        if ci_test.lower() == 'gpdctorch':
+            self.ci_test = GPDCtorch(significance='analytic')
         else:
             self.ci_test = ParCorr()
         self.verbose = verbose
-        
+
         if self.result_path:
             os.makedirs(self.result_path, exist_ok=True)
 
@@ -79,7 +82,7 @@ class CausalDiscovery:
 
 
 class DecomposedCausalDiscovery(CausalDiscovery):
-    def __init__(self, data_path, tau_max, var_names=None, pc_alpha=0.01, ci_test='gpdc', decomp_period=None, decomp_clusters=None, reuse_clusters=False, cluster_centers=None, aggregation_method='MTW', verbose=1, result_path=None, max_steps=None):
+    def __init__(self, data_path:str, tau_max:float, var_names:Optional[List[str]]=None, pc_alpha:Optional[float]=0.01, ci_test:Optional[Literal["GPDC","GPDCTorch","ParCorr"]]='GPDCTorch', verbose:Optional[int]=1, result_path:Optional[str]=None, decomp_period:Optional[int]=None, decomp_clusters:Optional[bool]=None, reuse_clusters:Optional[bool]=False, cluster_centers:Optional[List[List[float]]]=None, aggregation_method:Optional[Literal['MTW','MTU','ANYU','SUM']]='MTW', max_steps:Optional[int]=None):
         self.data_path = data_path
         self.tau_max = tau_max
         self.var_names = var_names
@@ -235,7 +238,7 @@ class DecomposedCausalDiscovery(CausalDiscovery):
         else:
             return adj
 
-    def save(self):
+    def save(self, result_path:str):
         self.stats["adj_MTW"]=self.aggregate('MTW').tolist()
         self.stats["adj_MTU"]=self.aggregate('MTU').tolist()
         self.stats["adj_ANYU"]=self.aggregate('ANYU').tolist()
