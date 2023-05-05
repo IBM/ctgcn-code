@@ -153,12 +153,15 @@ class DecomposedCausalDiscovery(CausalDiscovery):
         # Warm up clustering
         if self.decomp_clusters and self.reuse_clusters and self.cluster_centers is None:
             print(f'Warming up clusters')
+            #km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="softdtw", n_jobs=-1)
+            #y_pred = km.fit_predict(data.transpose())
+
             for i, (start, end) in enumerate(tqdm(zip(periods, periods[1:]))):
-                if i == 0:
-                    km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", n_jobs=-1)
-                else:
+                if i>0:
                     km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", init=km.cluster_centers_, n_jobs=-1)
-                km.fit_predict(data[start:end, :].transpose())
+                else:
+                    km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", n_jobs=-1)
+                y_pred = km.fit_predict(data[start:end, :].transpose())
 
                 if self.max_steps and i >= self.max_steps:
                     if self.verbose > 0:
