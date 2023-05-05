@@ -1,4 +1,4 @@
-from typing import List, Enum, Optional, Literal
+from typing import List, Optional, Literal
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -91,8 +91,17 @@ class DecomposedCausalDiscovery(CausalDiscovery):
         self.pc_alpha = pc_alpha
         self.max_steps = max_steps
         self.result_path = result_path
+        print("Running Decomposition with:")
+        print(f"    tau_max: {tau_max}")
+        print(f"    pc_alpha: {pc_alpha}")
+        print(f"    ci_test: {ci_test}")
+        print(f"    max_steps: {max_steps}")
+        print(f"    data_path: {data_path}")
+        print(f"    result_path: {result_path}")
         if ci_test.lower() == 'gpdc':
             self.ci_test = GPDC(significance='analytic')
+        if ci_test.lower() == 'gpdctorch':
+            self.ci_test = GPDCtorch(significance='analytic')
         else:
             self.ci_test = ParCorr()
         self.verbose = verbose
