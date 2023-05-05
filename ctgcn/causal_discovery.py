@@ -180,6 +180,7 @@ class DecomposedCausalDiscovery(CausalDiscovery):
                 else:
                     km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", n_jobs=-1)
                 y_pred = km.fit_predict(data[start:end, :].transpose())
+                clustertime = datetime.now()
 
                 if self.verbose > 0:
                     print(f'\nTemporal split {i} of {len(periods) - 1} has clustering inertia: {km.inertia_}')
@@ -213,6 +214,7 @@ class DecomposedCausalDiscovery(CausalDiscovery):
                 "cluster_centers": km.cluster_centers_.tolist(),
                 "clusters": list(cluster_map.values()),
                 "runtime": (dtnow - steptime).total_seconds(),
+                "clustertime": (clustertime - steptime).total_seconds(),
                 "starttime": steptime.isoformat(),
                 "endtime": dtnow.isoformat(),
             })
