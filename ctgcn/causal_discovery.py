@@ -168,7 +168,7 @@ class DecomposedCausalDiscovery(CausalDiscovery):
         for i, (start, end) in enumerate(tqdm(zip(periods, periods[1:]))):
             steptime = datetime.now()
             if not self.decomp_clusters:
-                print(f'Temporal split {i} of {len(periods) - 1}.')
+                print(f'Temporal split {i} of {len(periods) - 1}')
                 adj = self.discover(data[start:end, :])
                 self.adj_list.append(adj)
             else:
@@ -183,7 +183,7 @@ class DecomposedCausalDiscovery(CausalDiscovery):
                 clustertime = datetime.now()
 
                 if self.verbose > 0:
-                    print(f'\nTemporal split {i} of {len(periods) - 1} has clustering inertia: {km.inertia_}')
+                    print(f'\nTemporal split {i} of {len(periods) - 1} with shape {data[start:end, :].shape} has clustering inertia: {km.inertia_}')
 
                 cluster_dict = {x: y for x, y in zip([x for x in range(len(data[0]))], y_pred)}
 
@@ -251,7 +251,7 @@ class DecomposedCausalDiscovery(CausalDiscovery):
         else:
             return adj
 
-    def save(self, result_path: str):
+    def save(self, result_path: str=None):
         self.stats["adj_MTW"] = self.aggregate('MTW').tolist()
         self.stats["adj_MTU"] = self.aggregate('MTU').tolist()
         self.stats["adj_ANYU"] = self.aggregate('ANYU').tolist()
