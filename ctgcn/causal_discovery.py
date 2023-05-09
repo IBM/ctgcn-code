@@ -159,21 +159,6 @@ class DecomposedCausalDiscovery(CausalDiscovery):
             for k, v in cluster_dict.items():
                 cluster_map[v] = cluster_map.get(v, []) + [k]
 
-        # Warm up clustering
-        elif self.decomp_clusters and self.reuse_clusters and self.cluster_centers is None:
-            print(f'Warming up clusters')
-            for i, (start, end) in enumerate(tqdm(zip(periods, periods[1:]))):
-                if i>0:
-                    km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", init=km.cluster_centers_, n_jobs=-1)
-                else:
-                    km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", n_jobs=-1)
-                y_pred = km.fit_predict(data[start:end, :].transpose())
-
-                if self.max_steps and i >= self.max_steps:
-                    if self.verbose > 0:
-                        print(f'Max steps reached. Stopping causal discovery.')
-                    break
-
         for i, (start, end) in enumerate(tqdm(zip(periods, periods[1:]))):
             steptime = datetime.now()
             if not self.decomp_clusters:
@@ -186,7 +171,7 @@ class DecomposedCausalDiscovery(CausalDiscovery):
                 if not self.one_cluster:
                     if self.reuse_clusters and self.cluster_centers is not None:
                         km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", init=self.cluster_centers, n_jobs=-1)
-                    elif self.reuse_clusters:
+                    elif self.reuse_clusters and i>0:
                         km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", init=km.cluster_centers_, n_jobs=-1)
                     else:
                         km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", n_jobs=-1)
