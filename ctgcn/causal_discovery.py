@@ -167,6 +167,7 @@ class DecomposedCausalDiscovery(CausalDiscovery):
                 self.adj_list.append(adj)
             else:
                 adj = np.zeros((len(data[0]), len(data[0])))
+                clustertime = datetime.now()
 
                 if not self.one_cluster:
                     if self.reuse_clusters and self.cluster_centers is not None:
@@ -176,13 +177,11 @@ class DecomposedCausalDiscovery(CausalDiscovery):
                     else:
                         km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", n_jobs=-1)
                     y_pred = km.fit_predict(data[start:end, :].transpose())
-                    clustertime = datetime.now()
 
                     if self.verbose > 0:
                         print(f'\nTemporal split {i} of {len(periods) - 1} with shape {data[start:end, :].shape} has clustering inertia: {km.inertia_}')
 
                     cluster_dict = {x: y for x, y in zip([x for x in range(len(data[0]))], y_pred)}
-
                     cluster_map = {}
                     for k, v in cluster_dict.items():
                         cluster_map[v] = cluster_map.get(v, []) + [k]
