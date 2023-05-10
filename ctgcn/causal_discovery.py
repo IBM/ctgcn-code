@@ -196,9 +196,9 @@ class DecomposedCausalDiscovery(CausalDiscovery):
                     sub_data = data[start:end, idxs]
                     sub_adj = self.discover(sub_data)
 
-                    for i, r1 in enumerate(idxs):
+                    for k, r1 in enumerate(idxs):
                         for j, r2 in enumerate(idxs):
-                            adj[r1, r2] = sub_adj[i, j]
+                            adj[r1, r2] = sub_adj[k, j]
 
             dtnow = datetime.now()
             self.stats["steps"].append({
