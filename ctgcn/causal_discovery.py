@@ -18,7 +18,7 @@ from datetime import datetime
 
 class CausalDiscovery:
     def __init__(self, data_path: str, tau_max: float, var_names: Optional[List[str]] = None, pc_alpha: Optional[float] = 0.01,
-                 ci_test: Optional[Literal["GPDC", "GPDCTorch", "ParCorr"]] = 'GPDCTorch', verbose: Optional[int] = 1, result_path: Optional[str] = None):
+                 ci_test: Optional[Literal["GPDC", "GPDCTorch", "ParCorr"]] = 'ParCorr', verbose: Optional[int] = 1, result_path: Optional[str] = None):
         self.data_path = data_path
         self.tau_max = tau_max
         self.var_names = var_names
