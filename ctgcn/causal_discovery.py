@@ -83,7 +83,7 @@ class CausalDiscovery:
 class DecomposedCausalDiscovery(CausalDiscovery):
     def __init__(self, data_path: str, tau_max: float, var_names: Optional[List[str]] = None, pc_alpha: Optional[float] = 0.01,
                  ci_test: Optional[Literal["GPDC", "GPDCTorch", "ParCorr"]] = 'GPDCTorch', verbose: Optional[int] = 1, result_path: Optional[str] = None,
-                 decomp_period: Optional[int] = None, decomp_clusters: Optional[bool] = None, reuse_clusters: Optional[bool] = False,
+                 decomp_period: Optional[int] = None, decomp_clusters: Optional[bool] = None, reuse_clusters: Optional[bool] = False, one_cluster: Optional[bool] = False,
                  cluster_centers: Optional[List[List[float]]] = None, aggregation_method: Optional[Literal['MTW', 'MTU', 'ANYU', 'SUM']] = 'MTW', max_steps: Optional[int] = None):
         self.data_path = data_path
         self.tau_max = tau_max
@@ -113,6 +113,7 @@ class DecomposedCausalDiscovery(CausalDiscovery):
         self.decomp_clusters = decomp_clusters
         self.reuse_clusters = reuse_clusters
         self.cluster_centers = cluster_centers
+        self.one_cluster = one_cluster
 
         self.aggregation_method = aggregation_method
         self.starttime = datetime.now()
@@ -150,23 +151,13 @@ class DecomposedCausalDiscovery(CausalDiscovery):
         if self.decomp_clusters:
             assert self.decomp_clusters < len(data[0]), "The number of clusters must be smaller than the number of variables."
 
-        # Warm up clustering
-        if self.decomp_clusters and self.reuse_clusters and self.cluster_centers is None:
-            print(f'Warming up clusters')
-            #km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="softdtw", n_jobs=-1)
-            #y_pred = km.fit_predict(data.transpose())
-
-            for i, (start, end) in enumerate(tqdm(zip(periods, periods[1:]))):
-                if i>0:
-                    km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", init=km.cluster_centers_, n_jobs=-1)
-                else:
-                    km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", n_jobs=-1)
-                y_pred = km.fit_predict(data[start:end, :].transpose())
-
-                if self.max_steps and i >= self.max_steps:
-                    if self.verbose > 0:
-                        print(f'Max steps reached. Stopping causal discovery.')
-                    break
+        if self.one_cluster:
+            km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="euclidean", n_jobs=-1)
+            y_pred = km.fit_predict(data.transpose())
+            cluster_map = {}
+            cluster_dict = {x: y for x, y in zip([x for x in range(len(data[0]))], y_pred)}
+            for k, v in cluster_dict.items():
+                cluster_map[v] = cluster_map.get(v, []) + [k]
 
         for i, (start, end) in enumerate(tqdm(zip(periods, periods[1:]))):
             steptime = datetime.now()
@@ -176,23 +167,24 @@ class DecomposedCausalDiscovery(CausalDiscovery):
                 self.adj_list.append(adj)
             else:
                 adj = np.zeros((len(data[0]), len(data[0])))
-                if self.reuse_clusters and self.cluster_centers is not None:
-                    km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", init=self.cluster_centers, n_jobs=-1)
-                elif self.reuse_clusters:
-                    km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", init=km.cluster_centers_, n_jobs=-1)
-                else:
-                    km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", n_jobs=-1)
-                y_pred = km.fit_predict(data[start:end, :].transpose())
                 clustertime = datetime.now()
 
-                if self.verbose > 0:
-                    print(f'\nTemporal split {i} of {len(periods) - 1} with shape {data[start:end, :].shape} has clustering inertia: {km.inertia_}')
+                if not self.one_cluster:
+                    if self.reuse_clusters and self.cluster_centers is not None:
+                        km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", init=self.cluster_centers, n_jobs=-1)
+                    elif self.reuse_clusters and i>0:
+                        km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", init=km.cluster_centers_, n_jobs=-1)
+                    else:
+                        km = TimeSeriesKMeans(n_clusters=self.decomp_clusters, metric="dtw", n_jobs=-1)
+                    y_pred = km.fit_predict(data[start:end, :].transpose())
 
-                cluster_dict = {x: y for x, y in zip([x for x in range(len(data[0]))], y_pred)}
+                    if self.verbose > 0:
+                        print(f'\nTemporal split {i} of {len(periods) - 1} with shape {data[start:end, :].shape} has clustering inertia: {km.inertia_}')
 
-                cluster_map = {}
-                for k, v in cluster_dict.items():
-                    cluster_map[v] = cluster_map.get(v, []) + [k]
+                    cluster_dict = {x: y for x, y in zip([x for x in range(len(data[0]))], y_pred)}
+                    cluster_map = {}
+                    for k, v in cluster_dict.items():
+                        cluster_map[v] = cluster_map.get(v, []) + [k]
 
                 for cluster, idxs in cluster_map.items():
                     if len(idxs) == 1:
